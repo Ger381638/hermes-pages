@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ger381638.github.io/hermes-pages/sitemap.xml
