@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek 发布 Super-agent 设计探索：五次实验，模型一次没派活</title>
+<meta name="description" content="10 月 31 日晚，DeepSeek Harness 团队在官方公众号发了一篇技术文章，讲他们怎么让一个 AI 同时跟进很多件事。 先说清楚它不是什么：这不是一款新产品。 按智东西 11 月 1 日的报道，团队公布的是">
+<link rel="canonical" href="https://ger381638.github.io/hermes-pages/baijiahao/2026-11-01-%E4%BA%94%E6%AC%A1%E5%AE%9E%E9%AA%8C%E6%A8%A1%E5%9E%8B%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E6%B4%BE%E6%B4%BB%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E5%8D%A1%E5%9C%A8%E8%B0%83%E5%BA%A6%E4%B8%8A.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DeepSeek 发布 Super-agent 设计探索：五次实验，模型一次没派活">
+<meta property="og:description" content="10 月 31 日晚，DeepSeek Harness 团队在官方公众号发了一篇技术文章，讲他们怎么让一个 AI 同时跟进很多件事。 先说清楚它不是什么：这不是一款新产品。 按智东西 11 月 1 日的报道，团队公布的是">
+<meta property="og:url" content="https://ger381638.github.io/hermes-pages/baijiahao/2026-11-01-%E4%BA%94%E6%AC%A1%E5%AE%9E%E9%AA%8C%E6%A8%A1%E5%9E%8B%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E6%B4%BE%E6%B4%BB%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E5%8D%A1%E5%9C%A8%E8%B0%83%E5%BA%A6%E4%B8%8A.html">
+<meta property="article:published_time" content="2026-11-01">
+<style>
+:root{--fg:#1a1a1a;--muted:#6b6b6b;--line:#e6e6e6;--bg:#fff;--accent:#1a5cff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+ font:17px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:56px 22px 96px}
+h1{font-size:1.6em;line-height:1.4;margin:0 0 .3em;letter-spacing:-.01em}
+h2{font-size:1.22em;margin:2.2em 0 .7em;padding-bottom:.3em;border-bottom:1px solid var(--line)}
+h3{font-size:1.05em;margin:1.8em 0 .6em}
+p{margin:0 0 1.15em}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+blockquote{margin:1.4em 0;padding:.2em 0 .2em 1em;border-left:3px solid var(--line);color:var(--muted)}
+code{background:#f5f5f5;padding:.15em .35em;border-radius:3px;font-size:.9em}
+pre{background:#f7f7f7;padding:14px;border-radius:6px;overflow-x:auto}
+pre code{background:none;padding:0}
+ul,ol{padding-left:1.3em;margin:0 0 1.2em}
+li{margin:.35em 0}
+table{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.94em}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#fafafa;font-weight:600}
+hr{border:0;border-top:1px solid var(--line);margin:2.4em 0}
+.meta{color:var(--muted);font-size:.86em;margin:0 0 2.2em;display:flex;gap:14px;flex-wrap:wrap}
+.meta .tag{background:#f2f4f8;color:#3a4a63;padding:2px 8px;border-radius:4px}
+.decl{color:var(--muted);font-size:.86em;border-top:1px solid var(--line);
+ margin-top:3em;padding-top:1.2em;line-height:1.7}
+.nav{padding:14px 0 0;border-top:1px solid var(--line);margin-top:3em;font-size:.9em}
+.list{list-style:none;padding:0;margin:0}
+.list li{padding:14px 0;border-bottom:1px solid var(--line)}
+.list .d{color:var(--muted);font-size:.84em;margin-left:10px}
+.list .p{font-size:.76em;background:#f2f4f8;color:#3a4a63;padding:1px 7px;border-radius:4px;margin-right:8px}
+h1.site{font-size:1.35em;margin-bottom:.2em}
+.sub{color:var(--muted);font-size:.9em;margin:0 0 2.6em}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"DeepSeek 发布 Super-agent 设计探索：五次实验，模型一次没派活","datePublished":"2026-11-01","inLanguage":"zh-CN","mainEntityOfPage":"https://ger381638.github.io/hermes-pages/baijiahao/2026-11-01-%E4%BA%94%E6%AC%A1%E5%AE%9E%E9%AA%8C%E6%A8%A1%E5%9E%8B%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E6%B4%BE%E6%B4%BB%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E5%8D%A1%E5%9C%A8%E8%B0%83%E5%BA%A6%E4%B8%8A.html","publisher":{"@type":"Organization","name":"Hz华正"}}</script>
+</head>
+<body><div class="wrap">
+<h1>DeepSeek 发布 Super-agent 设计探索：五次实验，模型一次没派活</h1>
+<p class="meta"><span class="tag">百家号</span><span>2026-11-01</span></p>
+<p>10 月 31 日晚，DeepSeek Harness 团队在官方公众号发了一篇技术文章，讲他们怎么让一个 AI 同时跟进很多件事。</p>
+<p>先说清楚它不是什么：<strong>这不是一款新产品。</strong></p>
+<p>按智东西 11 月 1 日的报道，团队公布的是一套底层架构设计——把计算机系统里的调度、缓存、存算分离、看门狗这些经典思路，搬进 AI 智能体里。部分设计已经写成了插件，开源在 <code>deepseek-ai/dsh-superagent-prototype</code>，但团队自己说得很明白：<strong>这只是一个验证技术路线的原型，并非 DeepSeek 正式产品。</strong></p>
+<h2>五个设计，各解决一个具体的堵点</h2>
+<p><strong>第一，双层结构：Router 加 Worker。</strong></p>
+<p>Router 是常驻的协调节点，统一接收群聊、GitHub、邮件等不同渠道的信息，决定派给谁；Worker 各自持有独立的上下文和工具，必要时还能再往下开子任务。</p>
+<p>它解决的是“一个人只能同时跟进三五个会话”这个上限——多任务的天花板，过去其实是人的注意力。</p>
+<p><strong>第二，事件驱动。</strong></p>
+<p>系统不是靠人发指令往前走，而是靠事件：某个会话有新消息、某个任务状态变化，都会触发判断。这套机制还包括事件的过滤、订阅直通，以及在信息还不全时先做试探性执行。</p>
+<p><strong>第三，异步执行循环。</strong></p>
+<p>耗时的任务丢到后台跑，前台继续接新指令，中途还能改方向或者叫停。</p>
+<p><strong>第四，存算分离。</strong></p>
+<p>执行循环在云端，会话状态进数据库，本地只留一个轻量进程。设备掉线了，重新上线可以接着跑。</p>
+<p><strong>第五，独立的 Watchdog（看门狗）。</strong></p>
+<p>相当于给智能体配了个监督员，检查任务有没有进展、是不是陷进了无效循环。</p>
+<h2>真正值得看的，是那组实验</h2>
+<p>团队做了一组模拟测试：模拟群聊加 GitHub 持续集成消息流，一次约 300 条消息，其中约 20 条是真正的工作请求。每种方案重复跑 5 次。</p>
+<p>结果：</p>
+<ul>
+<li>Super-agent：<strong>p50 12.4 分钟，p95 15.7 分钟</strong></li>
+<li>传统的“单会话 + 子智能体工具”：中性提示下，<strong>p95 达到 29.5 分钟</strong></li>
+</ul>
+<p>p95 从 15.7 分钟拉到 29.5 分钟，<strong>慢了近九成</strong>。</p>
+<p>但真正的信息不在这个倍数里，在下面这行字：</p>
+<p><strong>中性提示配置下，5 次实验里，模型一次都没有调用子智能体。</strong></p>
+<p>任务全挤在主会话里，被不断涌进来的新消息打断。</p>
+<p>团队接着做了第二组：把提示词改成“优先委派”。这次 5 次里有 4 次派了出去，仍然比 Super-agent 慢；剩下 1 次，模型判断这活“很小”，自己干了，形成长尾。</p>
+<h2>这说明什么</h2>
+<p>很多人以为多智能体落地难，难在模型能力不够、上下文不够长、工具不够多。</p>
+<p>这组实验指向另一个答案：<strong>难在“派活”这个决策，没有任何东西强制它发生。</strong></p>
+<p>模型可以用子智能体，但它会判断“没必要”。这不是能力问题，是调度问题——把决策权留给了每一次临场判断，就等于把系统的稳定性交给了运气。</p>
+<p>Super-agent 的做法，是把这件事从“靠提示词求它”变成“由系统强制它”：谁接单、派给谁、超时怎么办，都在架构里写死。</p>
+<p><strong>这是工程思路，不是模型思路。</strong></p>
+<p>多智能体系统有三种典型失败模式。前一种在这组实验里直接出现了，后两种是常见风险：</p>
+<p><strong>一是不派。</strong> 模型觉得“我自己能行”，活儿全压在一条线上，一有新消息就断。</p>
+<p><strong>二是抢活。</strong> 多个执行单元同时盯上一件事，重复劳动、互相覆盖——这是多智能体系统最常见的坑，所以团队让每个 Worker 都订阅对应的会话线程，冲突让它们自己先协商，协商不了才上报 Router。</p>
+<p><strong>三是派错。</strong> 派给了不对的人，做得越多错得越多。Router 的批处理和 Watchdog 的复查，防的就是这一种。</p>
+<h2>一个已经跑起来的场景</h2>
+<p>这套架构不只是纸面设计。团队的内部实例已经在日常跑：参与问题复现与修复、代码审查回应，以及 Harness 自身的迭代。</p>
+<p>澎湃新闻转引科创板日报的报道里举了个例子，很能说明区别：</p>
+<p><strong>团队成员在群里反馈软件问题时，即使没有人主动 @ 它，它也能识别出潜在缺陷，在后台尝试复现、找修复方案。</strong></p>
+<p>从“你问我答”，到“没人叫它，它也来干活”——这一步的距离，比参数涨多少更值得注意。</p>
+<h2>我的三点保留</h2>
+<p><strong>第一，省时间是要花 token 的。</strong></p>
+<p>智东西的报道写得很清楚：维护多个会话，读缓存 token 会高于单会话——用更多 token，换更短更稳的完成时间。</p>
+<p>另外，去掉“订阅直通”之后，Router 的决定数增加约 30%，读缓存 token 从 2323 万涨到 3177 万。</p>
+<p><strong>时间账和钱账，永远是两本。</strong> 报道里给了 token 变化的相对数，但没有给完整的成本口径，这一点得等后续实测。</p>
+<p><strong>第二，看门狗本身也要被看着。</strong></p>
+<p>Watchdog 是 AI 监督 AI。它能发现任务卡住了，但它自己判断失误的时候，谁兜底？</p>
+<p>这套架构解决了“无人值守”，还没解决“无人复核”。</p>
+<p><strong>第三，真正的瓶颈可能不在 AI 这边。</strong></p>
+<p>架构把执行带宽放大了，但任务最终要人来验收。<strong>AI 一天能干完的活，人可能一周都验不完。</strong></p>
+<p>当执行不再是瓶颈，验收就成了瓶颈。这一点，文章里没有答案。</p>
+<h2>最后</h2>
+<p>从“对话窗口”到“持续在线的协作者”，这条路的技术细节已经有人在铺了。</p>
+<p>但对使用者来说，变化可能只有一句：</p>
+<p><strong>AI 当上主管之后，人剩下两件事——定目标，和签字。</strong></p>
+<p>定目标需要判断力，签字需要承担责任。这两件事，目前都还没法外包。</p>
+<p>（本文依据 DeepSeek Harness 团队 2026-10-31 官方公众号文章《Super-agent 设计探索：迈向更自主的 Agent 系统》，参考智东西 2026-11-01 报道、澎湃新闻转科创板日报 2026-10-31 报道。文中实验数据均为该团队自述，未见第三方复现。）</p>
+<p class="decl">创作声明：本文基于公开信息与网络资源，借助 AI 辅助整理与撰写。内容旨在传播文明与进步，观点仅代表个人分析，供读者参考。如有疏漏，欢迎指正。</p>
+<p class="nav"><a href="../index.html">← 全部文章</a></p>
+</div></body></html>
